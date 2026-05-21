@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exit Amsterdam — Evenementen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --border: #2a2a2a;
+      --border2: #333;
+      --text: #f0ece4;
+      --muted: #888;
+      --accent: #e8c840;
+      --accent2: #ff4c1a;
+      --radius: 6px;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      padding: 3rem 3rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .header-title span {
+      color: var(--accent);
+    }
+
+    .header-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ─── ADD BUTTON ─── */
+    .btn-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      padding: 9px 18px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-toggle:hover { background: #f5d84a; }
+    .btn-toggle:active { transform: scale(0.98); }
+    .btn-toggle i { font-size: 16px; }
+
+    /* ─── MODAL OVERLAY ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 540px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .btn-close:hover { color: var(--text); }
+
+    /* ─── FORM ─── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+
+    label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    input[type="date"],
+    input[type="time"],
+    textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 9px 12px;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ─── PHOTO UPLOAD ─── */
+    .photo-upload {
+      aspect-ratio: 1.91 / 1;
+      border: 1.5px dashed var(--border2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s;
+    }
+    .photo-upload:hover { border-color: var(--accent); }
+    .photo-upload img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-placeholder { text-align: center; color: var(--muted); pointer-events: none; }
+    .photo-placeholder i { font-size: 28px; display: block; margin-bottom: 6px; }
+    .photo-placeholder span { font-size: 12px; line-height: 1.5; }
+    .photo-placeholder small { font-size: 11px; opacity: 0.6; display: block; }
+    .photo-remove-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,0.6); border: none; border-radius: 50%;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #fff; font-size: 14px; z-index: 2;
+    }
+    #f-photo { display: none; }
+
+    /* ─── COLOR PICKER ─── */
+    .color-dots { display: flex; gap: 8px; }
+    .color-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      cursor: pointer; border: 2px solid transparent;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.selected { border-color: #fff; }
+
+    /* ─── FORM ACTIONS ─── */
+    .form-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+    .btn-save {
+      flex: 1;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      padding: 10px 20px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: #f5d84a; }
+
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--border2); color: var(--text); }
+
+    /* ─── MAIN CONTENT ─── */
+    .main { padding: 2.5rem 3rem; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* ─── EVENTS GRID ─── */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .ev-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .ev-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-3px);
+    }
+
+    /* FB banner ratio */
+    .ev-banner {
+      aspect-ratio: 1.91 / 1;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface2);
+    }
+    .ev-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ev-banner-empty {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ev-banner-empty i { font-size: 32px; color: var(--border2); }
+
+    .ev-accent { height: 2px; }
+
+    .ev-body { padding: 1rem 1.1rem 1rem; }
+
+    .ev-date {
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      margin-bottom: 5px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ev-date i { font-size: 13px; }
+
+    .ev-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .ev-location {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 4px;
+      margin-bottom: 6px;
+    }
+    .ev-location i { font-size: 13px; flex-shrink: 0; }
+
+    .ev-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .ev-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+
+    .ev-link {
+      font-size: 12px;
+      color: #5b9de8;
+      text-decoration: none;
+      display: flex; align-items: center; gap: 4px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .ev-link:hover { color: #82b4f0; }
+    .ev-link i { font-size: 14px; }
+
+    .ev-delete {
+      background: none; border: none;
+      color: var(--border2);
+      cursor: pointer; padding: 3px 5px;
+      border-radius: 4px; font-size: 15px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .ev-delete:hover { color: var(--accent2); background: rgba(255,76,26,0.1); }
+
+    /* ─── EMPTY STATE ─── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+      font-size: 14px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+    .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; color: var(--border2); }
+    .empty-state strong { display: block; color: var(--text); font-size: 16px; margin-bottom: 6px; font-family: 'Syne', sans-serif; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      .header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 2rem 1.5rem 1.5rem; }
+      .main { padding: 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div>
+      <h1 class="header-title">EXIT <span>AMSTERDAM</span></h1>
+      <p class="header-sub">Aankomende evenementen</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-toggle" onclick="openModal()">
+        <i class="ti ti-plus"></i> Evenement toevoegen
+      </button>
+    </div>
+  </header>
+
+  <!-- ADD EVENT MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Nieuw evenement</span>
+        <button class="btn-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+      </div>
+
+      <div class="form-grid">
+        <div class="full">
+          <div class="form-group">
+            <label>Omslagfoto — Facebook banner (1.91 : 1)</label>
+            <div class="photo-upload" id="uploadArea" onclick="document.getElementById('f-photo').click()">
+              <div class="photo-placeholder" id="photoPlaceholder">
+                <i class="ti ti-photo-up"></i>
+                <span>Klik om foto te uploaden</span>
+                <small>Aanbevolen: 1920 × 1005 px</small>
+              </div>
+              <img id="photoPreview" src="" style="display:none;" alt="Preview" />
+              <button class="photo-remove-btn" id="photoRemove" style="display:none;" onclick="removePhoto(event)">
+                <i class="ti ti-x"></i>
+              </button>
+            </div>
+            <input type="file" id="f-photo" accept="image/*" onchange="handlePhoto(event)" />
+          </div>
+        </div>
+
+        <div class="full">
+          <div class="form-group">
+            <label>Naam evenement *</label>
+            <input type="text" id="f-name" placeholder="bijv. Saturday Night with DJ Marco" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Datum</label>
+          <input type="date" id="f-date" />
+        </div>
+
+        <div class="form-group">
+          <label>Tijd</label>
+          <input type="time" id="f-time" />
+        </div>
+
+        <div class="full">
+          <div class="form-group">
+            <label>Locatie</label>
+            <input type="text" id="f-location" placeholder="bijv. Exit Amsterdam, Reguliersdwarsstraat 42" />
+          </div>
+        </div>
+
+        <div class="full">
+          <div class="form-group">
+            <label>Omschrijving</label>
+            <textarea id="f-desc" placeholder="Korte beschrijving..."></textarea>
+          </div>
+        </div>
+
+        <div class="full">
+          <div class="form-group">
+            <label>Facebook event link</label>
+            <input type="url" id="f-link" placeholder="https://www.facebook.com/events/..." />
+          </div>
+        </div>
+
+        <div class="full">
+          <div class="form-group">
+            <label>Accentkleur</label>
+            <div class="color-dots" id="colorPicker">
+              <div class="color-dot selected" data-color="#e8c840" style="background:#e8c840;" onclick="selectColor(this)" title="geel"></div>
+              <div class="color-dot" data-color="#ff4c1a" style="background:#ff4c1a;" onclick="selectColor(this)" title="rood"></div>
+              <div class="color-dot" data-color="#5b9de8" style="background:#5b9de8;" onclick="selectColor(this)" title="blauw"></div>
+              <div class="color-dot" data-color="#7f77dd" style="background:#7f77dd;" onclick="selectColor(this)" title="paars"></div>
+              <div class="color-dot" data-color="#1d9e75" style="background:#1d9e75;" onclick="selectColor(this)" title="groen"></div>
+              <div class="color-dot" data-color="#d4537e" style="background:#d4537e;" onclick="selectColor(this)" title="roze"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-save" onclick="addEvent()"><i class="ti ti-check" style="font-size:14px;vertical-align:-1px;margin-right:4px;"></i>Opslaan</button>
+        <button class="btn-cancel" onclick="closeModal()">Annuleren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="section-head">
+      <span class="section-label" id="sectionLabel">Evenementen</span>
+    </div>
+    <div class="events-grid" id="eventsGrid"></div>
+    <div class="empty-state" id="emptyState">
+      <i class="ti ti-calendar-event"></i>
+      <strong>Nog geen evenementen</strong>
+      Klik op "Evenement toevoegen" om te beginnen.
+    </div>
+  </main>
+
+  <script>
+    let events = [];
+    let selectedColor = '#e8c840';
+    let currentPhoto = null;
+
+    // Probeer localStorage (werkt op eigen hosting, niet in Wix iFrame)
+    try {
+      const saved = localStorage.getItem('exit_events_wix');
+      if (saved) events = JSON.parse(saved);
+    } catch(e) {}
+
+    function persist() {
+      try { localStorage.setItem('exit_events_wix', JSON.stringify(events)); } catch(e) {}
+    }
+
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    function selectColor(el) {
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedColor = el.dataset.color;
+    }
+
+    function handlePhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        currentPhoto = ev.target.result;
+        document.getElementById('photoPreview').src = currentPhoto;
+        document.getElementById('photoPreview').style.display = 'block';
+        document.getElementById('photoPlaceholder').style.display = 'none';
+        document.getElementById('photoRemove').style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removePhoto(e) {
+      e.stopPropagation();
+      currentPhoto = null;
+      document.getElementById('photoPreview').src = '';
+      document.getElementById('photoPreview').style.display = 'none';
+      document.getElementById('photoPlaceholder').style.display = 'block';
+      document.getElementById('photoRemove').style.display = 'none';
+      document.getElementById('f-photo').value = '';
+    }
+
+    function formatDate(d) {
+      if (!d) return 'Datum onbekend';
+      const dt = new Date(d + 'T00:00:00');
+      return dt.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function addEvent() {
+      const name = document.getElementById('f-name').value.trim();
+      if (!name) { document.getElementById('f-name').focus(); return; }
+      const ev = {
+        id: Date.now(),
+        name,
+        date: document.getElementById('f-date').value,
+        time: document.getElementById('f-time').value,
+        location: document.getElementById('f-location').value.trim(),
+        desc: document.getElementById('f-desc').value.trim(),
+        link: document.getElementById('f-link').value.trim(),
+        color: selectedColor,
+        photo: currentPhoto
+      };
+      events.push(ev);
+      events.sort((a, b) => (a.date || '9999') < (b.date || '9999') ? -1 : 1);
+      persist();
+      clearForm();
+      closeModal();
+      render();
+    }
+
+    function clearForm() {
+      ['f-name','f-date','f-time','f-location','f-desc','f-link'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      removePhoto({ stopPropagation: () => {} });
+    }
+
+    function deleteEvent(id) {
+      if (!confirm('Dit evenement verwijderen?')) return;
+      events = events.filter(e => e.id !== id);
+      persist();
+      render();
+    }
+
+    function render() {
+      const grid = document.getElementById('eventsGrid');
+      const empty = document.getElementById('emptyState');
+      const label = document.getElementById('sectionLabel');
+
+      if (events.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        label.textContent = 'Evenementen';
+        return;
+      }
+
+      empty.style.display = 'none';
+      label.textContent = `Evenementen (${events.length})`;
+
+      grid.innerHTML = events.map((ev, i) => `
+        <div class="ev-card" style="animation-delay:${i * 0.07}s">
+          <div class="ev-banner">
+            ${ev.photo
+              ? `<img src="${ev.photo}" alt="${ev.name}" />`
+              : `<div class="ev-banner-empty"><i class="ti ti-photo"></i></div>`
+            }
+          </div>
+          <div class="ev-accent" style="background:${ev.color};"></div>
+          <div class="ev-body">
+            <div class="ev-date"><i class="ti ti-calendar"></i>${ev.date ? formatDate(ev.date) : 'Datum onbekend'}${ev.time ? ' &middot; ' + ev.time : ''}</div>
+            <div class="ev-name">${ev.name}</div>
+            ${ev.location ? `<div class="ev-location"><i class="ti ti-map-pin"></i>${ev.location}</div>` : ''}
+            ${ev.desc ? `<div class="ev-desc">${ev.desc}</div>` : ''}
+            <div class="ev-footer">
+              ${ev.link ? `<a class="ev-link" href="${ev.link}" target="_blank"><i class="ti ti-brand-facebook"></i>Bekijk op Facebook</a>` : '<span></span>'}
+              <button class="ev-delete" onclick="deleteEvent(${ev.id})" title="Verwijderen"><i class="ti ti-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
